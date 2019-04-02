@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>ConverterImpl.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">finalServer</a> &gt; <a href="index.source.html" class="el_package">com.conversion</a> &gt; <span class="el_source">ConverterImpl.java</span></div><h1>ConverterImpl.java</h1><pre class="source lang-java linenums">package com.conversion;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Currency;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.jws.WebService;
+
+@WebService(endpointInterface=&quot;com.conversion.Converter&quot;)
+<span class="fc" id="L16">public class ConverterImpl implements Converter {</span>
+
+	public ArrayList&lt;String&gt; getCurrencyCode(String sender,String receiver) {
+<span class="fc" id="L19">		return getAvailableCurrencies(sender,receiver);</span>
+	}
+	private ArrayList&lt;String&gt; getAvailableCurrencies(String c,String r) {
+		
+<span class="fc" id="L23">		int senderFlag = 0;</span>
+<span class="fc" id="L24">		int receiverflag = 0;</span>
+<span class="fc" id="L25">		ArrayList&lt;String&gt; myCode = new ArrayList&lt;&gt;();	</span>
+<span class="fc" id="L26">		Locale[] locales = Locale.getAvailableLocales();</span>
+<span class="fc" id="L27">        Map&lt;String, String&gt; currencies = new LinkedHashMap&lt;&gt;();</span>
+<span class="pc bpc" id="L28" title="1 of 2 branches missed.">        for (Locale locale : locales) {	</span>
+<span class="fc bfc" id="L29" title="All 2 branches covered.">            	if (locale.getDisplayCountry().equalsIgnoreCase(c))</span>
+            	{
+<span class="fc" id="L31">            		senderFlag = 1;</span>
+<span class="fc" id="L32">            		currencies.put(locale.getDisplayCountry(),Currency.getInstance(locale).getCurrencyCode());</span>
+<span class="fc" id="L33">            		break;</span>
+            	}
+        } 
+<span class="pc bpc" id="L36" title="1 of 2 branches missed.">        for (Locale locale : locales) {	</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        	if (locale.getDisplayCountry().equalsIgnoreCase(r))</span>
+        	{
+<span class="fc" id="L39">        		receiverflag = 1;</span>
+<span class="fc" id="L40">        		currencies.put(locale.getDisplayCountry(),Currency.getInstance(locale).getCurrencyCode());</span>
+        		
+<span class="fc" id="L42">        		break;</span>
+        	}	
+        }
+<span class="pc bpc" id="L45" title="1 of 2 branches missed.">        if(senderFlag == 0)</span>
+		{
+<span class="nc" id="L47">			myCode.add(&quot;sender not found&quot;);</span>
+<span class="nc" id="L48">			return myCode;</span>
+		}
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">        if(receiverflag == 0){</span>
+<span class="nc" id="L51">		    myCode.add(&quot;receiver not found&quot;);</span>
+<span class="nc" id="L52">		    return myCode;</span>
+        }
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        for(Entry&lt;String, String&gt; country : currencies.entrySet()) </span>
+        {
+<span class="fc" id="L56">            String currencyCode = currencies.get(country.getValue());</span>
+<span class="fc" id="L57">            myCode.add(currencyCode);</span>
+        }
+<span class="fc" id="L59">        return myCode;</span>
+    }
+	
+	
+	public float getConversionRate(String sender, String receiver, float val) {
+<span class="fc" id="L64">		float output = getUrlContents(&quot;https://api.exchangeratesapi.io/latest?base=&quot;+sender+&quot;&amp;symbols=&quot;+receiver);</span>
+<span class="fc" id="L65">		return val*output;</span>
+	}
+	private static float getUrlContents(String theUrl)
+	{
+<span class="fc" id="L69">	    StringBuilder content = new StringBuilder();</span>
+	    try
+	    {
+<span class="fc" id="L72">	      URL url = new URL(theUrl);</span>
+<span class="fc" id="L73">	      URLConnection urlConnection = url.openConnection();</span>
+<span class="fc" id="L74">	      BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));</span>
+	      String line;
+<span class="fc bfc" id="L76" title="All 2 branches covered.">	      while ((line = bufferedReader.readLine()) != null)</span>
+	      {
+<span class="fc" id="L78">	        content.append(line + &quot;\n&quot;);</span>
+	      }
+<span class="fc" id="L80">	      bufferedReader.close();</span>
+<span class="fc" id="L81">	    }</span>
+<span class="nc" id="L82">	    catch(Exception e)</span>
+	    {
+<span class="nc" id="L84">	      e.printStackTrace();</span>
+	    }
+<span class="fc" id="L86">	    String[] arrs = content.toString().split(&quot;,&quot;);</span>
+<span class="fc" id="L87">	    String[] as  = arrs[1].split(&quot;:&quot;);</span>
+<span class="fc" id="L88">	    String assVal = as[2].replaceAll(&quot;\\}&quot;, &quot;&quot;);</span>
+<span class="fc" id="L89">	    return Float.parseFloat(assVal);</span>
+	}
+	
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

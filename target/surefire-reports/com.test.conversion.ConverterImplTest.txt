@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.test.conversion.ConverterImplTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.254 s - in com.test.conversion.ConverterImplTest
